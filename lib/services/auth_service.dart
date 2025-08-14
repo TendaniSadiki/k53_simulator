@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firestore_service.dart';
+import '../models/user_profile.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -29,6 +30,15 @@ class AuthService {
       email,
       phone
     );
+    
+    // Create extended user profile
+    final profile = UserProfile(
+      uid: result.user!.uid,
+      learnersLicenseNumber: '',
+      preferredLanguage: 'en',
+      vehicleType: 'light',
+    );
+    await firestoreService.createUserProfile(profile);
     
     // Mark first login
     await FirebaseFirestore.instance
