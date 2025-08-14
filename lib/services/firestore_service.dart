@@ -1,7 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+
+
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  // Save user profile
+  Future<void> saveUserProfile(String userId, String fullName, String email, String phone) {
+    return _firestore.collection('users').doc(userId).set({
+      'fullName': fullName,
+      'email': email,
+      'phone': phone,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
 
   // Save a new session
   Future<void> saveSession(String userId, Map<String, dynamic> sessionData) {

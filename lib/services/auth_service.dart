@@ -1,4 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'firestore_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -11,10 +13,29 @@ class AuthService {
   }
 
   // Register with email and password
-  Future<User> register(String email, String password) async {
+  Future<User> register(String email, String password, String fullName, String phone) async {
     UserCredential result = await _auth.createUserWithEmailAndPassword(
         email: email, password: password);
     await result.user!.sendEmailVerification();
+    
+    // Update display name
+    await result.user!.updateDisplayName(fullName);
+    
+    // Save profile to Firestore with firstLogin flag
+    final firestoreService = FirestoreService();
+    await firestoreService.saveUserProfile(
+      result.user!.uid,
+      fullName,
+      email,
+      phone
+    );
+    
+    // Mark first login
+    await FirebaseFirestore.instance
+      .collection('users')
+      .doc(result.user!.uid)
+      .update({'firstLogin': true});
+    
     return result.user!;
   }
 

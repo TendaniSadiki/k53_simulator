@@ -12,7 +12,9 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _fullNameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final AuthService _auth = AuthService();
   bool _isLoading = false;
@@ -25,7 +27,12 @@ class _AuthScreenState extends State<AuthScreen> {
         if (_isLogin) {
           await _auth.signIn(_emailController.text, _passwordController.text);
         } else {
-          await _auth.register(_emailController.text, _passwordController.text);
+          await _auth.register(
+            _emailController.text,
+            _passwordController.text,
+            _fullNameController.text,
+            _phoneController.text,
+          );
           // Show verification email sent modal only if widget is still mounted
           if (mounted) {
             showDialog(
@@ -102,6 +109,17 @@ class _AuthScreenState extends State<AuthScreen> {
           key: _formKey,
           child: Column(
             children: [
+              if (!_isLogin)
+                TextFormField(
+                  controller: _fullNameController,
+                  decoration: const InputDecoration(labelText: 'Full Name'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your full name';
+                    }
+                    return null;
+                  },
+                ),
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(labelText: 'Email'),
@@ -116,6 +134,21 @@ class _AuthScreenState extends State<AuthScreen> {
                   return null;
                 },
               ),
+              if (!_isLogin)
+                TextFormField(
+                  controller: _phoneController,
+                  decoration: const InputDecoration(labelText: 'Phone Number'),
+                  keyboardType: TextInputType.phone,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your phone number';
+                    }
+                    if (!RegExp(r'^[0-9]{10}$').hasMatch(value)) {
+                      return 'Please enter a valid 10-digit phone number';
+                    }
+                    return null;
+                  },
+                ),
               TextFormField(
                 controller: _passwordController,
                 decoration: const InputDecoration(labelText: 'Password'),
