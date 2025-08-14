@@ -5,6 +5,7 @@ import 'firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'screens/auth_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/email_verification_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,10 +31,17 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.authStateChanges(),
+        stream: FirebaseAuth.instance.userChanges(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.active) {
-            return snapshot.hasData ? HomeScreen() : AuthScreen();
+            final user = snapshot.data;
+            if (user == null) {
+              return AuthScreen();
+            } else if (!user.emailVerified) {
+              return EmailVerificationScreen();
+            } else {
+              return HomeScreen();
+            }
           }
           return Scaffold(
             body: Center(child: CircularProgressIndicator()),
