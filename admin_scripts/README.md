@@ -1,47 +1,41 @@
-# Admin User Registration
+# Admin User Registration Script (Local Execution)
 
-This script allows you to register admin users directly without email verification.
+This script allows you to register admin users directly without email verification. Since GitHub Actions requires billing setup, use these instructions to run the script locally.
 
-## GitHub Actions Pipeline Setup
+## Prerequisites
+1. Install Node.js (version 18 or higher)
+2. Download your Firebase service account key (already provided as `k53-simulator-4766f5f6fe07.json`)
 
-1. **Add Service Account Secret**:
-   - Go to your GitHub repository → Settings → Secrets and variables → Actions
-   - Click "New repository secret"
-   - Name: `SERVICE_ACCOUNT_JSON`
-   - Value: Paste the entire content of your Firebase service account JSON file
-   - Click "Add secret"
-
-2. **Run the Workflow**:
-   - Go to your GitHub repository → Actions
-   - Select "Admin Registration" workflow
-   - Click "Run workflow"
-   - Provide inputs:
-     - `email`: Admin email address
-     - `password`: Admin password
-   - Click "Run workflow"
-
-3. **Verify Execution**:
-   - The workflow will:
-     1. Checkout your code
-     2. Setup Node.js
-     3. Install dependencies
-     4. Register the admin user
-
-## Local Usage
-
+## Setup Instructions
+1. Navigate to the `admin_scripts` directory:
 ```bash
-node register_admin.js --email <admin_email> --password <password> --service-account <path_to_service_account_json>
+cd admin_scripts
 ```
 
-Example:
+2. Install required packages:
 ```bash
-node register_admin.js --email Tendanisadikiadmin@gmail.com --password securepassword123 --service-account ./service-account.json
+npm install firebase-admin yargs
 ```
+
+3. Return to the project root:
+```bash
+cd ..
+```
+
+## Usage
+Run the script with your admin credentials (make sure you're in the project root directory):
+```bash
+node admin_scripts/register_admin.js --email "Tendanisadikiadmin@gmail.com" --password "your_secure_password" --service-account ./k53-simulator-4766f5f6fe07.json
+```
+
+### Options
+- `--email`: Admin email address (required)
+- `--password`: Admin password (minimum 6 characters, required)
+- `--service-account`: Path to your Firebase service account JSON file (e.g., `./k53-simulator-4766f5f6fe07.json`). This file can be downloaded from Firebase Console > Project Settings > Service Accounts.
 
 ## Security Notes
-- Keep service account credentials secure
-- Never commit service account JSON files to version control
-- Add service account files to .gitignore:
-  ```gitignore
-  *.json
-  ```
+- Keep the service account JSON file secure
+- Never commit service account files to version control
+- The .gitignore file already excludes *.json files except firebase.json
+- Rotate service account keys periodically through Firebase Console
+- Delete the service account file after use for maximum security

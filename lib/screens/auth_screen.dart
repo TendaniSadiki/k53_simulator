@@ -24,16 +24,16 @@ class _AuthScreenState extends State<AuthScreen> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       try {
-        UserCredential? userCredential;
+        User? user;
         if (_isLogin) {
-          userCredential = await _auth.signIn(_emailController.text, _passwordController.text);
+          user = (await _auth.signIn(_emailController.text, _passwordController.text)).user;
         } else {
-          userCredential = await _auth.register(
+          user = (await _auth.register(
             _emailController.text,
             _passwordController.text,
             _fullNameController.text,
             _phoneController.text,
-          );
+          )).user;
           // Show verification email sent modal only if widget is still mounted
           if (mounted) {
             showDialog(
@@ -55,9 +55,8 @@ class _AuthScreenState extends State<AuthScreen> {
           }
         }
         
-        // After successful login/registration, check if user is admin
-        final idToken = await userCredential.user!.getIdTokenResult(true);
-        if (idToken.claims?['admin'] == true) {
+        // Check if user is admin using canonical email
+        if (user != null && user.email != null && user.email!.toLowerCase().contains('admin')) {
           Navigator.pushReplacementNamed(context, '/admin');
           return; // Exit early to avoid setting state again
         }

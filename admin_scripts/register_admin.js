@@ -44,7 +44,7 @@ const argv = yargs(hideBin(process.argv))
   })
   .option('service-account', {
     alias: 's',
-    describe: 'Path to Firebase service account JSON file',
+    describe: './k53-simulator-4766f5f6fe07.json)',
     demandOption: true,
     type: 'string'
   })
