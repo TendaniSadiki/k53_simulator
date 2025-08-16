@@ -26,14 +26,9 @@ class _AuthScreenState extends State<AuthScreen> {
       try {
         User? user;
         if (_isLogin) {
-          user = (await _auth.signIn(_emailController.text, _passwordController.text)).user;
+          user = await _auth.signIn(_emailController.text, _passwordController.text);
         } else {
-          user = (await _auth.register(
-            _emailController.text,
-            _passwordController.text,
-            _fullNameController.text,
-            _phoneController.text,
-          )).user;
+          user = await _auth.register(_emailController.text, _passwordController.text);
           // Show verification email sent modal only if widget is still mounted
           if (mounted) {
             showDialog(
