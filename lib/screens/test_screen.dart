@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:tflite_flutter/tflite_flutter.dart';
 
 class TestScreen extends StatefulWidget {
   const TestScreen({super.key});
@@ -11,6 +12,7 @@ class TestScreen extends StatefulWidget {
 class _TestScreenState extends State<TestScreen> {
   int _currentQuestion = 0;
   int _score = 0;
+  Interpreter? _interpreter; // TensorFlow Lite interpreter
   // final FirestoreService _firestore = FirestoreService();
 
   // Sample K53 questions
@@ -60,6 +62,48 @@ class _TestScreenState extends State<TestScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _loadModel();
+  }
+
+  @override
+  void dispose() {
+    _interpreter?.close();
+    super.dispose();
+  }
+
+  Future<void> _loadModel() async {
+    try {
+      _interpreter = await Interpreter.fromAsset('assets/models/model.tflite');
+    } catch (e) {
+      print('Failed to load model: $e');
+      // Handle error appropriately (e.g., show error UI)
+    }
+  }
+
+  // Sample inference function
+  Future<void> _runInference() async {
+    if (_interpreter == null) {
+      print('Interpreter not loaded');
+      return;
+    }
+
+    try {
+      // Create sample input (adjust dimensions based on your model)
+      final input = [List.filled(10, 1.0)]; // Example: 10 features
+      final output = [List.filled(1, 0.0)]; // Example: single output
+      
+      // Run inference
+      _interpreter!.run(input, output);
+      
+      print('Inference result: ${output[0][0]}');
+    } catch (e) {
+      print('Inference error: $e');
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (_currentQuestion >= _questions.length) {
       return Scaffold(
@@ -81,6 +125,11 @@ class _TestScreenState extends State<TestScreen> {
                   _score = 0;
                 }),
                 child: const Text('Restart Test'),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _runInference,
+                child: const Text('Test Model'),
               )
             ],
           ),

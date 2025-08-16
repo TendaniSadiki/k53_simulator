@@ -24,10 +24,11 @@ class _AuthScreenState extends State<AuthScreen> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       try {
+        UserCredential? userCredential;
         if (_isLogin) {
-          await _auth.signIn(_emailController.text, _passwordController.text);
+          userCredential = await _auth.signIn(_emailController.text, _passwordController.text);
         } else {
-          await _auth.register(
+          userCredential = await _auth.register(
             _emailController.text,
             _passwordController.text,
             _fullNameController.text,
@@ -52,6 +53,18 @@ class _AuthScreenState extends State<AuthScreen> {
               ),
             );
           }
+        }
+        
+        // After successful login/registration, check if user is admin
+        final idToken = await userCredential.user!.getIdTokenResult(true);
+        if (idToken.claims?['admin'] == true) {
+          Navigator.pushReplacementNamed(context, '/admin');
+          return; // Exit early to avoid setting state again
+        }
+
+        // For non-admin users, navigate to home screen
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/home');
         }
       } on FirebaseAuthException catch (e) {
         if (mounted) {

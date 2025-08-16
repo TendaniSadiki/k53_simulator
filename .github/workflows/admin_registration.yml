@@ -1,0 +1,29 @@
+name: Admin Registration
+
+on:
+  workflow_dispatch:
+    inputs:
+      email:
+        description: 'Admin email address'
+        required: true
+      password:
+        description: 'Admin password'
+        required: true
+
+jobs:
+  register-admin:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install firebase-admin yargs
+
+      - name: Register admin user
+        run: node admin_scripts/register_admin.js --email "${{ inputs.email }}" --password "${{ inputs.password }}" --service-account <(echo '${{ secrets.SERVICE_ACCOUNT_JSON }}')

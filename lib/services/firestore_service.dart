@@ -1,41 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/user_profile.dart';
+import 'package:k53_simulator/models/image_question.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Create user profile on registration
-  Future<void> createUserProfile(UserProfile profile) async {
-    await _firestore.collection('user_profiles').doc(profile.uid).set(profile.toMap());
-  }
-
-  // Get user profile stream
-  Stream<UserProfile> getUserProfile(String uid) {
-    return _firestore.collection('user_profiles').doc(uid).snapshots().map(
-          (snapshot) => snapshot.exists ? UserProfile.fromMap(uid, snapshot.data()!) : UserProfile(
-            uid: uid,
-            learnersLicenseNumber: '',
-            preferredLanguage: 'en',
-            vehicleType: 'light',
-          ),
-    );
-  }
-
-  // Update user profile
-  Future<void> updateUserProfile(UserProfile profile) async {
-    await _firestore.collection('user_profiles').doc(profile.uid).update(profile.toMap());
-  }
-
-  // Add test result to profile
-  Future<void> addTestResult(String uid, TestResult result) async {
-    await _firestore.collection('user_profiles').doc(uid).update({
-      'testHistory': FieldValue.arrayUnion([result.toMap()])
-    });
-  }
-
-  // Existing methods below...
-
-  // Save user profile (original)
+  // Save user profile
   Future<void> saveUserProfile(String userId, String fullName, String email, String phone) {
     return _firestore.collection('users').doc(userId).set({
       'fullName': fullName,
@@ -60,5 +29,36 @@ class FirestoreService {
         .collection('shares')
         .doc(sessionId)
         .set({'userId': userId, 'timestamp': FieldValue.serverTimestamp()});
+  }
+
+  // Save an image question
+  Future<void> saveImageQuestion(ImageQuestion question) {
+    return _firestore.collection('image_questions').doc(question.id).set(question.toMap());
+  }
+
+  // Fetch randomized image questions
+  Future<List<ImageQuestion>> fetchRandomImageQuestions(int limit, {String? userId}) async {
+    final query = _firestore.collection('image_questions');
+    
+    // Optionally filter out questions seen by user
+    if (userId != null) {
+      query.where('seenBy', arrayContains: userId);
+    }
+
+    final snapshot = await query.get();
+    final questions = snapshot.docs
+      .map((doc) => ImageQuestion.fromMap(doc.data() as Map<String, dynamic>))
+      .toList();
+    
+    // Shuffle and limit results
+    questions.shuffle();
+    return questions.take(limit).toList();
+  }
+
+  // Mark question as seen by user
+  Future<void> markQuestionSeen(String questionId, String userId) {
+    return _firestore.collection('image_questions').doc(questionId).update({
+      'seenBy': FieldValue.arrayUnion([userId])
+    });
   }
 }

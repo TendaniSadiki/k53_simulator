@@ -1,52 +1,43 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firestore_service.dart';
-import '../models/user_profile.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // Sign in with email and password
-  Future<User> signIn(String email, String password) async {
-    UserCredential result = await _auth.signInWithEmailAndPassword(
+  Future<UserCredential> signIn(String email, String password) async {
+    return await _auth.signInWithEmailAndPassword(
         email: email, password: password);
-    return result.user!;
   }
 
   // Register with email and password
-  Future<User> register(String email, String password, String fullName, String phone) async {
-    UserCredential result = await _auth.createUserWithEmailAndPassword(
+  Future<UserCredential> register(String email, String password, String fullName, String phone) async {
+    final userCredential = await _auth.createUserWithEmailAndPassword(
         email: email, password: password);
-    await result.user!.sendEmailVerification();
+    
+    // Send verification email
+    await userCredential.user!.sendEmailVerification();
     
     // Update display name
-    await result.user!.updateDisplayName(fullName);
+    await userCredential.user!.updateDisplayName(fullName);
     
-    // Save profile to Firestore with firstLogin flag
+    // Save profile to Firestore
     final firestoreService = FirestoreService();
     await firestoreService.saveUserProfile(
-      result.user!.uid,
+      userCredential.user!.uid,
       fullName,
       email,
       phone
     );
     
-    // Create extended user profile
-    final profile = UserProfile(
-      uid: result.user!.uid,
-      learnersLicenseNumber: '',
-      preferredLanguage: 'en',
-      vehicleType: 'light',
-    );
-    await firestoreService.createUserProfile(profile);
-    
     // Mark first login
     await FirebaseFirestore.instance
       .collection('users')
-      .doc(result.user!.uid)
+      .doc(userCredential.user!.uid)
       .update({'firstLogin': true});
     
-    return result.user!;
+    return userCredential;
   }
 
   // Send password reset email

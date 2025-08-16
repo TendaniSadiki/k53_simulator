@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 // Added for debugPrint
 import 'package:firebase_core/firebase_core.dart';
@@ -6,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'screens/auth_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/email_verification_screen.dart';
+import 'screens/admin_dashboard_screen.dart'; // Add admin dashboard import
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,7 +50,10 @@ class MyApp extends StatelessWidget {
           );
         },
       ),
+      // Add admin dashboard route
+      routes: {
+        '/admin': (context) => const AdminDashboardScreen(),
+      },
     );
   }
 }
-
